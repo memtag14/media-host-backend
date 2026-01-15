@@ -10,7 +10,7 @@ app = FastAPI(title="Media Hosting")
 
 # Разрешаем запросы с фронтенда GitHub Pages
 origins = [
-    "https://memtag14.github.io"  # <-- сюда твой фронтенд
+    "https://memtag14.github.io/media-host"  # <-- сюда твой фронтенд
 ]
 
 app.add_middleware(
