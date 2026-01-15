@@ -3,34 +3,34 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from .config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
-from .utils import generate_filename
+from app.config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
+from app.utils import generate_filename
 
 app = FastAPI(title="Media Hosting")
 
-# === CORS для фронтенда ===
+# === CORS для фронтенда GitHub Pages ===
 origins = [
-    "https://memtag14.github.io/media-host/"  # <-- адрес твоего фронтенда на GitHub Pages
+    "https://memtag14.github.io",
+    "https://memtag14.github.io/media-host"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Можно временно ["*"] для теста
+    allow_origins=origins,   # можно временно ["*"] для теста
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Создаём папки для загрузок ===
+# === Создаём папки для загрузок, если их нет ===
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(MUSIC_DIR, exist_ok=True)
 
 # === Монтируем статические папки ===
 app.mount("/images", StaticFiles(directory=IMAGE_DIR), name="images")
 app.mount("/music", StaticFiles(directory=MUSIC_DIR), name="music")
-# app.mount("/static", StaticFiles(directory="public"), name="static")  # если нужно для фронтенда
 
-# === Простейшая проверка работы сервера ===
+# === Проверка работы сервера ===
 @app.get("/", response_class=HTMLResponse)
 def index():
     return "<h1>Media Hosting Backend</h1><p>Работает!</p>"
@@ -40,7 +40,7 @@ async def check_file_size(file: UploadFile):
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large")
-    await file.seek(0)  # возвращаем указатель в начало файла
+    await file.seek(0)  # возвращаем указатель в начало
     return contents
 
 # === Загрузка изображений ===
