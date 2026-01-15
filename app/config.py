@@ -1,12 +1,16 @@
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# Папки для хранения файлов
+IMAGE_DIR = "uploads/images"
+MUSIC_DIR = "uploads/music"
 
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-IMAGE_DIR = os.path.join(UPLOAD_DIR, "images")
-MUSIC_DIR = os.path.join(UPLOAD_DIR, "music")
+# Разрешённые типы файлов
+ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"]
+ALLOWED_MUSIC_TYPES = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"]
 
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+# Максимальный размер файла (10 МБ)
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
-ALLOWED_MUSIC_TYPES = ["audio/mpeg", "audio/wav", "audio/ogg"]
+# Создание папок, если их нет
+os.makedirs(IMAGE_DIR, exist_ok=True)
+os.makedirs(MUSIC_DIR, exist_ok=True)
