@@ -3,12 +3,13 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
 from app.utils import generate_filename
 
 app = FastAPI(title="Media Hosting")
 
-# === CORS для фронтенда GitHub Pages ===
+# === CORS для GitHub Pages ===
 origins = [
     "https://memtag14.github.io",
     "https://memtag14.github.io/media-host"
@@ -16,13 +17,13 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,   # можно временно ["*"] для теста
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Создаём папки для загрузок, если их нет ===
+# === Создаем папки для загрузок, если их нет ===
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(MUSIC_DIR, exist_ok=True)
 
@@ -40,7 +41,7 @@ async def check_file_size(file: UploadFile):
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large")
-    await file.seek(0)  # возвращаем указатель в начало
+    await file.seek(0)
     return contents
 
 # === Загрузка изображений ===
