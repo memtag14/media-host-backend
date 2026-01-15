@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Media Hosting</title>
+</head>
+<body>
+<h2>Загрузка изображения</h2>
+<form action="/upload/image" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*">
+    <button>Загрузить</button>
+</form>
+
+<h2>Загрузка музыки</h2>
+<form action="/upload/music" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="audio/*">
+    <button>Загрузить</button>
+</form>
+</body>
+</html>
