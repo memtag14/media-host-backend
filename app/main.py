@@ -1,48 +1,49 @@
+import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from .config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
 from .utils import generate_filename
-import os
 
 app = FastAPI(title="Media Hosting")
 
-# Разрешаем запросы с фронтенда GitHub Pages
+# === CORS для фронтенда ===
 origins = [
-    "https://memtag14.github.io/media-host"  # <-- сюда твой фронтенд
+    "https://memtag14.github.io/media-host/"  # <-- адрес твоего фронтенда на GitHub Pages
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,  # Можно временно ["*"] для теста
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Создаем папки для загрузок, если их нет
+# === Создаём папки для загрузок ===
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(MUSIC_DIR, exist_ok=True)
 
-# Монтируем статические папки
+# === Монтируем статические папки ===
 app.mount("/images", StaticFiles(directory=IMAGE_DIR), name="images")
 app.mount("/music", StaticFiles(directory=MUSIC_DIR), name="music")
-app.mount("/static", StaticFiles(directory="public"), name="static")
+# app.mount("/static", StaticFiles(directory="public"), name="static")  # если нужно для фронтенда
 
-
+# === Простейшая проверка работы сервера ===
 @app.get("/", response_class=HTMLResponse)
 def index():
     return "<h1>Media Hosting Backend</h1><p>Работает!</p>"
 
-# Вспомогательная функция для проверки размера
+# === Проверка размера файла ===
 async def check_file_size(file: UploadFile):
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large")
-    await file.seek(0)  # возвращаем указатель в начало
+    await file.seek(0)  # возвращаем указатель в начало файла
     return contents
 
+# === Загрузка изображений ===
 @app.post("/upload/image")
 async def upload_image(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
@@ -57,7 +58,7 @@ async def upload_image(file: UploadFile = File(...)):
 
     return {"url": f"/images/{filename}"}
 
-
+# === Загрузка музыки ===
 @app.post("/upload/music")
 async def upload_music(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_MUSIC_TYPES:
