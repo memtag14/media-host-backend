@@ -1,16 +1,16 @@
-import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
-from utils import generate_filename
+from .config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
+from .utils import generate_filename
+import os
 
 app = FastAPI(title="Media Hosting")
 
 # Разрешаем запросы с фронтенда GitHub Pages
 origins = [
-    "https://memtag14.github.io/media-host"  # <-- сюда твой фронтенд
+    "https://memtag14.github.io"  # <-- сюда твой фронтенд
 ]
 
 app.add_middleware(
