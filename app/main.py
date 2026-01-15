@@ -1,15 +1,31 @@
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from app.config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES
-from app.utils import generate_filename
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from config import IMAGE_DIR, MUSIC_DIR, ALLOWED_IMAGE_TYPES, ALLOWED_MUSIC_TYPES, MAX_FILE_SIZE
+from utils import generate_filename
 
 app = FastAPI(title="Media Hosting")
 
+# Разрешаем запросы с фронтенда GitHub Pages
+origins = [
+    "https://memtag14.github.io"  # <-- сюда твой фронтенд
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Создаем папки для загрузок, если их нет
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(MUSIC_DIR, exist_ok=True)
 
+# Монтируем статические папки
 app.mount("/images", StaticFiles(directory=IMAGE_DIR), name="images")
 app.mount("/music", StaticFiles(directory=MUSIC_DIR), name="music")
 app.mount("/static", StaticFiles(directory="public"), name="static")
@@ -17,24 +33,29 @@ app.mount("/static", StaticFiles(directory="public"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    with open("public/index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return "<h1>Media Hosting Backend</h1><p>Работает!</p>"
 
+# Вспомогательная функция для проверки размера
+async def check_file_size(file: UploadFile):
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File too large")
+    await file.seek(0)  # возвращаем указатель в начало
+    return contents
 
 @app.post("/upload/image")
 async def upload_image(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=400, detail="Invalid image type")
 
+    contents = await check_file_size(file)
     filename = generate_filename(file.filename)
     path = os.path.join(IMAGE_DIR, filename)
 
     with open(path, "wb") as f:
-        f.write(await file.read())
+        f.write(contents)
 
-    return {
-        "url": f"/images/{filename}"
-    }
+    return {"url": f"/images/{filename}"}
 
 
 @app.post("/upload/music")
@@ -42,12 +63,11 @@ async def upload_music(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_MUSIC_TYPES:
         raise HTTPException(status_code=400, detail="Invalid audio type")
 
+    contents = await check_file_size(file)
     filename = generate_filename(file.filename)
     path = os.path.join(MUSIC_DIR, filename)
 
     with open(path, "wb") as f:
-        f.write(await file.read())
+        f.write(contents)
 
-    return {
-        "url": f"/music/{filename}"
-    }
+    return {"url": f"/music/{filename}"}
